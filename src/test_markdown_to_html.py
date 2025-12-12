@@ -81,6 +81,18 @@ class TestTextNode(unittest.TestCase):
             "<div><ol><li>First</li><li>Second</li><li>Third</li></ol></div>"
         )
 
+    def test_ordered_list_with_links(self):
+        md = """
+1. [Why Glorfindel is More Impressive than Legolas](/blog/glorfindel)
+2. [Why Tom Bombadil Was a Mistake](/blog/tom)
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ol><li><a href=\"/blog/glorfindel\">Why Glorfindel is More Impressive than Legolas</a></li><li><a href=\"/blog/tom\">Why Tom Bombadil Was a Mistake</a></li></ol></div>"
+        )
+
     def test_blockquote(self):
         md = "> This is a quote\n> And another line"
         node = markdown_to_html_node(md)

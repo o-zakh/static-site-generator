@@ -1,15 +1,15 @@
 import shutil
 import os
-from html_gen_functions import generate_page
+from html_gen_functions import generate_pages_recursive, generate_page
 
 # Static
 PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/public'
 ORIG_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/static'
 
 # Generation files
-FROM_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/content/index.md'
+FROM_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/content'
 TEMPLATE_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/template.html'
-DEST_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/public/index.html'
+DEST_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/public'
 
 # Copy all files from 'original_directory' to 'dest_directory'
 def file_сopy(original_directory, dest_directory):
@@ -36,7 +36,7 @@ def main():
     file_сopy(ORIG_PATH, PATH)
 
     # Generating html from md
-    generate_page(FROM_PATH, TEMPLATE_PATH, DEST_PATH)
+    generate_pages_recursive(FROM_PATH, TEMPLATE_PATH, DEST_PATH)
 
 
 main()

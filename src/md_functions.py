@@ -174,13 +174,20 @@ def items_in_lists(block):
     list_of_items = block.splitlines()
     leafnode_list = []
     for item in list_of_items:
+        # print(f'>item is {item}')
         textnodes_in_line = text_to_textnodes(item[item.find(" ")+1:])
+        # print(f'>>textnodes_in_line is {textnodes_in_line}')
         
         # Check for inline text formatting
-        if len(textnodes_in_line) > 1:
+        if (
+            len(textnodes_in_line) > 1 or
+            textnodes_in_line[0].text_type != TextType.TEXT
+        ):
             list_children = []
             for textnode in textnodes_in_line:
+                # print(f">>>textnode is {textnode}")
                 htmlnode = text_node_to_html_node(textnode)
+                # print(f'>>>>htmlnode is {htmlnode}')
                 list_children.append(htmlnode)
             leafnode_list.append(ParentNode('li', list_children))
         
