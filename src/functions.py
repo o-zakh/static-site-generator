@@ -1,7 +1,8 @@
 import re
 
 from textnode import TextNode, TextType
-from htmlnode import LeafNode
+from htmlnode import LeafNode, ParentNode
+from blocktype import BlockType
 
 def main():
     textnode = TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev")
@@ -20,7 +21,7 @@ def text_node_to_html_node(text_node):
         if text_node.text_type == TextType.LINK:
             return LeafNode("a", text_node.text, {"href": text_node.url})
         if text_node.text_type == TextType.IMAGE:
-            return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text}) # value remains None, ask Boots
+            return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
     except Exception:
         ("ERROR: Incorrect TextNode type")
 
@@ -127,5 +128,113 @@ def markdown_to_blocks(markdown):
         final_block_list.append(block)
     return final_block_list
 
+def block_to_block_type(markdown_text_block: str) -> BlockType:
+    if re.search(r'(?<!.)#{1,6}\s', markdown_text_block):
+        return BlockType.heading
+    elif re.search(r'^```.*```$', markdown_text_block, re.DOTALL):
+        return BlockType.code
+    lines = markdown_text_block.splitlines()
+    if lines and all(line.startswith('>') or line.strip() == "" for line in lines):
+        return BlockType.quote
+    if lines and all(line.startswith('- ') or line.strip() == "" for line in lines):
+        return BlockType.unordered_list
+    for i, line in enumerate(lines):
+        if not re.search(fr'^{i+1}\.\s', line):
+            break
+        if i == len(lines)-1:
+            if re.search(fr'^{i+1}\.\s', line):
+                return BlockType.ordered_list
+    return BlockType.paragraph
 
-# main()
+def blocktype_to_html_node(blocktype, heading_type=None, block=None):
+    if blocktype.name == "paragraph":
+        return ParentNode('p', [])
+    if blocktype.name == "heading":
+        return ParentNode(f'h{heading_type}', [])
+    if blocktype.name == "code":
+        raise Exception ("ERROR: blocktype.name == 'code'")
+    if blocktype.name == "quote":
+        return ParentNode('blockquote', [])
+    if blocktype.name == "unordered_list":
+        return ParentNode('ul', items_in_lists(block))
+    if blocktype.name == "ordered_list":
+        return ParentNode('ol', items_in_lists(block))
+    raise Exception ("ERROR: blocktype is invalid")
+
+def codeblock_to_leafnode(block):
+    textlines_list = block.splitlines()
+    # print(f">>>textline_list is {textlines_list}")
+    for i, line in enumerate(textlines_list):
+        if (
+            line == "```"
+        ):
+            textlines_list[i] = ""
+    # print(f">>>textline_list output is {'\n'.join(textlines_list)}")
+    return "\n".join(textlines_list)
+
+def items_in_lists(block):
+    list_of_items = block.splitlines()
+    leafnode_list = []
+    for item in list_of_items:
+        leafnode_list.append(LeafNode('li', item[item.find(" ")+1:])) # Searching for first whitespace char and takes the text after it
+    return leafnode_list
+
+def markdown_to_html_node(markdown):
+
+    # Split the markdown into blocks
+    blocks_list = markdown_to_blocks(markdown)
+    parentnode_list = []
+    for block in blocks_list:
+        if block == "":
+            continue
+
+        # Determine the type of block
+        blocktype = block_to_block_type(block)
+        
+        # Unique branch for code blocks
+        if blocktype.name == "code":
+            leaf_codenode = LeafNode("code", codeblock_to_leafnode(block))
+            parent_codenode = ParentNode("pre", [leaf_codenode])
+            parentnode_list.append(parent_codenode)
+            continue
+        
+        # Heading number counter, ex. h1, h2, h3
+        heading_type = None
+        if blocktype.name == "heading":
+            heading_type = 0
+            while block[heading_type] == "#":
+                heading_type += 1
+            if (
+                heading_type == 0 or
+                heading_type == 7
+            ):
+                raise Exception ("incorrect heading_type")
+            block = block.lstrip("# ")
+        
+        # Unique branch for list blocks (ul, ol)
+        if (
+            blocktype.name == "ordered_list" or
+            blocktype.name == "unordered_list"
+        ):
+            parentnode = blocktype_to_html_node(blocktype, heading_type, block)
+            parentnode_list.append(parentnode)
+            continue
+            
+        # Based on the type of block, create a new HTMLNode with the proper data
+        parentnode = blocktype_to_html_node(blocktype, heading_type)
+        block_text_for_inlines = block
+        if blocktype.name == "paragraph":
+            block_text_for_inlines = block.replace("\n", " ")
+        if blocktype.name == "quote":
+            block_text_for_inlines = block.replace("> ", "")
+
+        textnodes = text_to_textnodes(block_text_for_inlines)
+        for textnode in textnodes:
+
+            # TextNode -> HTMLNode
+            htmlnode = text_node_to_html_node(textnode)
+            parentnode.children.append(htmlnode)
+        parentnode_list.append(parentnode)
+    div_parentnode = ParentNode('div',parentnode_list)
+
+    return div_parentnode
