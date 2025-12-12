@@ -163,20 +163,30 @@ def blocktype_to_html_node(blocktype, heading_type=None, block=None):
 
 def codeblock_to_leafnode(block):
     textlines_list = block.splitlines()
-    # print(f">>>textline_list is {textlines_list}")
     for i, line in enumerate(textlines_list):
         if (
             line == "```"
         ):
             textlines_list[i] = ""
-    # print(f">>>textline_list output is {'\n'.join(textlines_list)}")
     return "\n".join(textlines_list)
 
 def items_in_lists(block):
     list_of_items = block.splitlines()
     leafnode_list = []
     for item in list_of_items:
-        leafnode_list.append(LeafNode('li', item[item.find(" ")+1:])) # Searching for first whitespace char and takes the text after it
+        textnodes_in_line = text_to_textnodes(item[item.find(" ")+1:])
+        
+        # Check for inline text formatting
+        if len(textnodes_in_line) > 1:
+            list_children = []
+            for textnode in textnodes_in_line:
+                htmlnode = text_node_to_html_node(textnode)
+                list_children.append(htmlnode)
+            leafnode_list.append(ParentNode('li', list_children))
+        
+        # Simple paragraph string in line
+        else:
+            leafnode_list.append(LeafNode('li', item[item.find(" ")+1:]))
     return leafnode_list
 
 def markdown_to_html_node(markdown):
@@ -210,7 +220,7 @@ def markdown_to_html_node(markdown):
             ):
                 raise Exception ("incorrect heading_type")
             block = block.lstrip("# ")
-        
+            
         # Unique branch for list blocks (ul, ol)
         if (
             blocktype.name == "ordered_list" or
@@ -219,7 +229,7 @@ def markdown_to_html_node(markdown):
             parentnode = blocktype_to_html_node(blocktype, heading_type, block)
             parentnode_list.append(parentnode)
             continue
-            
+
         # Based on the type of block, create a new HTMLNode with the proper data
         parentnode = blocktype_to_html_node(blocktype, heading_type)
         block_text_for_inlines = block
@@ -238,3 +248,4 @@ def markdown_to_html_node(markdown):
     div_parentnode = ParentNode('div',parentnode_list)
 
     return div_parentnode
+

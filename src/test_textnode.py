@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode, TextType
-from functions import *
+from md_functions import *
 
 
 class TestTextNode(unittest.TestCase):

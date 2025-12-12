@@ -1,6 +1,6 @@
 import unittest
 
-from functions import *
+from md_functions import *
 
 
 class TestTextNode(unittest.TestCase):
@@ -63,13 +63,13 @@ class TestTextNode(unittest.TestCase):
             "<div><p>Here is an image: <img src=\"https://example.com/img.png\" alt=\"alt text\"></img></p></div>"
         )
 
-    def test_unordered_list(self):
-        md = "- Item one\n- Item two\n- Item three"
+    def test_unordered_list_with_inline_formatting(self):
+        md = "- Item one\n- Item _number_ two\n- Item three"
         node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><ul><li>Item one</li><li>Item two</li><li>Item three</li></ul></div>"
+            "<div><ul><li>Item one</li><li>Item <i>number</i> two</li><li>Item three</li></ul></div>"
         )
 
     def test_ordered_list(self):

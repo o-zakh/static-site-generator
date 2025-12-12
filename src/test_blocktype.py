@@ -1,6 +1,6 @@
 import unittest
 from blocktype import *
-from functions import block_to_block_type
+from md_functions import block_to_block_type
 
 
 class TestHtmlNode(unittest.TestCase):
