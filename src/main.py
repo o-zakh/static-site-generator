@@ -1,15 +1,22 @@
 import shutil
 import os
+import sys
+
 from html_gen_functions import generate_pages_recursive, generate_page
 
-# Static
-PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/public'
-ORIG_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/static'
+# Static files
+ORIG_PATH = './static'
 
 # Generation files
-FROM_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/content'
-TEMPLATE_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/template.html'
-DEST_PATH = '/home/oleg/workspace/github.com/o-zakh/static-site-generator/public'
+FROM_PATH = './content'
+TEMPLATE_PATH = './template.html'
+DEST_PATH = './docs'
+
+basepath = '/'
+if sys.argv[1]:
+    basepath = sys.argv[1]
+
+print(f'basepath is {basepath}')
 
 # Copy all files from 'original_directory' to 'dest_directory'
 def file_сopy(original_directory, dest_directory):
@@ -28,12 +35,12 @@ def file_сopy(original_directory, dest_directory):
 def main():
 
     # Deleting everything in the public directory.
-    if os.path.exists(PATH):
-        shutil.rmtree(PATH)
-    os.mkdir(PATH)
+    if os.path.exists(DEST_PATH):
+        shutil.rmtree(DEST_PATH)
+    os.mkdir(DEST_PATH)
     
     # Copying static files
-    file_сopy(ORIG_PATH, PATH)
+    file_сopy(ORIG_PATH, DEST_PATH)
 
     # Generating html from md
     generate_pages_recursive(FROM_PATH, TEMPLATE_PATH, DEST_PATH)
