@@ -13,7 +13,7 @@ TEMPLATE_PATH = './template.html'
 DEST_PATH = './docs'
 
 basepath = '/'
-if sys.argv[1]:
+if len(sys.argv) > 1:
     basepath = sys.argv[1]
 
 print(f'basepath is {basepath}')
@@ -43,7 +43,7 @@ def main():
     file_сopy(ORIG_PATH, DEST_PATH)
 
     # Generating html from md
-    generate_pages_recursive(FROM_PATH, TEMPLATE_PATH, DEST_PATH)
+    generate_pages_recursive(FROM_PATH, TEMPLATE_PATH, DEST_PATH, basepath)
 
 
 main()
